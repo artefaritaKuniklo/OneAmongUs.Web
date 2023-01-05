@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
 import Home from '../views/Home.vue'
 import Profile from "@/views/Profile.vue";
 import EditInfo from "@/views/EditInfo.vue";
@@ -7,7 +7,7 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/',
         name: 'Home',
-        component: Home
+        component: () => import("../views/Home.vue")
     },
     {
         path: '/about',
@@ -19,14 +19,22 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/profile/:userid',
+        alias: '/p/:userid',
         name: 'Profile',
-        component: Profile,
+        component: () => import("../views/Profile.vue"),
+        props: true
+    },
+    {
+        path: '/profile/:userid/backup/:backup',
+        alias: '/p/:userid/b/:backup',
+        name: 'Channel Backup',
+        component: () => import("../views/ChannelBackup.vue"),
         props: true
     },
     {
         path: '/edit-info/:userid',
         name: 'EditInfo',
-        component: EditInfo,
+        component: () => import("../views/EditInfo.vue"),
         props: true
     }
 ]

@@ -10,8 +10,42 @@ export function peopleUrl(id: string): string
 {
     return urljoin(dataHost, 'people', id)
 }
+export function backupUrl(id: string, platform: string): string
+{
+    return urljoin(peopleUrl(id), 'backup', platform, 'posts.json')
+}
 
 export function replaceUrlVars(str: string, id: string): string
 {
     return str.replace(/\${dataHost}/g, dataHost).replace(/\${path}/g, peopleUrl(id))
+}
+
+const zhMap = {'zh-tw': 'zh_hant', 'zh-hk': 'zh_hant', 'zh-sg': 'zh_hans', 'zh-cn': 'zh_hans'}
+type Lang = 'zh_hans' | 'zh_hant'
+
+/**
+ * Get language
+ *
+ * @return 'hans' or 'hant'
+ */
+export function getLang(): Lang
+{
+    // Language preference set, return
+    const pref = localStorage.getItem("lang")
+    if (pref && (pref == 'zh_hans' || pref == 'zh_hant')) return pref
+
+    // No language preference, infer from user agent
+    const langs = navigator.languages.map(it => it.toLowerCase())
+
+    // If user agent contains any langauges starting with zh-
+    const zh = langs.filter(it => it.startsWith("zh-"))
+    if (zh.length > 0 && zhMap[zh[0]]) return zhMap[zh[0]]
+
+    return 'zh_hans'
+}
+
+export function setLang(name: Lang)
+{
+    if (name in zhMap) name = zhMap[name]
+    localStorage.setItem('lang', name)
 }

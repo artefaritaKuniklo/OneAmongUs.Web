@@ -1,21 +1,6 @@
 import moment from 'moment'
-
-/**
- * Download a string
- * @param filename File name
- * @param text Content
- */
-export function download(filename: string, text: string): void
-{
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    element.setAttribute('download', filename);
-
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-}
+import {getLang} from "@/logic/config";
+import {info} from "@/logic/utils";
 
 /**
  * https://github.com/moh3n9595/js-abbreviation-number
@@ -68,7 +53,7 @@ export function getTodayDate(): string
 
 export function randint(min: number, max: number): number
 {
-    return Math.floor(Math.random() * (max - min + 1) + min)
+    return Math.floor(rand(min, max))
 }
 
 export function rand(min: number, max: number): number
@@ -76,27 +61,63 @@ export function rand(min: number, max: number): number
     return Math.random() * (max - min + 1) + min
 }
 
-interface RequestInfo extends RequestInit
+interface RequestInitWithParams extends RequestInit
 {
     params?: {[index: string]: string}
 }
 
 /**
- * Fetch but handles errors better
+ * Modify a fetch url
  *
- * @param url
- * @param init
+ * @param input Fetch url input
+ * @param callback Callback for modification
  */
-export function neofetch(url: string, init?: RequestInfo): Promise<string>
+export function reconstructUrl(input: URL | RequestInfo, callback: (URL) => URL | void): RequestInfo | URL
 {
-    const u = new URL(url)
-    u.search = new URLSearchParams(init.params ?? {}).toString()
+    let u = new URL((input instanceof Request) ? input.url : input);
+    const result = callback(u)
+    if (result) u = result
+    if (input instanceof Request) return {url: u, ...input}
+    return u
+}
 
-    return new Promise((resolve, reject) => {
-        fetch(u.toString(), init).then(response => response.text().then(text =>
-            {
-                if (response.ok) resolve(text)
-                else throw new Error(text)
-            })).catch(error => reject(error))
-    })
+/**
+ * Fetch with url parameters
+ */
+export function fetchWithParams(input: URL | RequestInfo, init?: RequestInitWithParams): Promise<Response>
+{
+    return fetch(reconstructUrl(input, u => { u.search = new URLSearchParams(init?.params ?? {}).toString() }), init)
+}
+
+/**
+ * Fetch with langauge
+ */
+export function fetchWithLang(input: RequestInfo, init?: RequestInitWithParams): Promise<Response>
+{
+    const lang = getLang()
+    if (lang == 'zh_hans') return fetchWithParams(input, init)
+
+    return fetchWithParams(reconstructUrl(input, (u: URL) => {
+        // Insert language into the file name of the request
+        const p = u.pathname.split('/')
+        const last = p.length - 1
+        const lsp = p[last].split('.')
+        if (lsp.length < 2) return u
+        lsp.splice(1, 0, lang)
+        p[last] = lsp.join('.')
+        u.pathname = p.join('/')
+
+        info(`Detected language: ${lang}. Changing request to ${u.pathname}`)
+    }), init)
+}
+
+/**
+ * Fetch but handles errors better
+ */
+export async function fetchText(url: string, init?: RequestInitWithParams): Promise<string>
+{
+    const response = await fetchWithParams(url, init)
+    const text = await response.text()
+    if (!response.ok) throw new Error(text)
+    return text
 }

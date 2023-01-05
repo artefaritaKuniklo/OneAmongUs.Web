@@ -14,17 +14,33 @@
 
     <router-view id="router" />
 
-    <Divider height="5px" />
+    <Divider height="5px"/>
+
+    <LangButton/>
 </template>
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component';
 import Divider from "@/components/divider.vue";
-import { useHead } from "@vueuse/head"
+import LangButton from "@/components/LangButton.vue";
+import {info, logPrefixCss} from "@/logic/utils";
+import {transColors} from "@/logic/constants";
+import {useHead} from "@vueuse/head"
 
-@Options({ components: { Divider } })
-export default class App extends Vue {
-    created(): void {
+@Options({components: {LangButton, Divider}})
+export default class App extends Vue
+{
+    mounted()
+    {
+        info(`One Among Us - Web Frontend loaded`)
+        console.log(`%c %c %c %c %c `,
+            ...transColors.map(c => `background: ${c}; padding: 40px 20px;`)
+        )
+        console.log(`%c🐱%c 请不要用调试器做奇怪的事情 qwq\n%c(^ 这里有猫猫看着你哦)`,
+            'font-size: 1.5em; background: #fdf6ec; color: #E6A23C;' + logPrefixCss,
+            'font-size: 1.5em; color: #ff8373',
+            'color: pink; line-height: 1.5em'
+        )
         useHead({
             meta: [
                 {
@@ -47,6 +63,7 @@ export default class App extends Vue {
 @import "css/global"
 @import "css/font"
 @import "css/colors"
+@import "css/markdown"
 
 #app
     font-family: "Microsoft YaHei UI", Avenir, Helvetica, Arial, sans-serif

@@ -3,9 +3,9 @@
         <div id="home" :class="clicked ? 'clicked' : ''">
             <div class="introduction markdown-content" v-html="htmlTop" />
 
-            <div id="profiles" class="unselectable" v-if="people">
-                <div class="profile" v-for="p, i in people" :key="i">
-                    <div class="back" />
+        <div id="profiles" class="unselectable" v-if="people">
+            <div class="profile" v-for="(p, i) in people" :key="i">
+                <div class="back"/>
                     <a :href="`/profile/${p.id}`" @click.exact.prevent.stop="() => false">
                         <transition name="fade" @after-leave="() => switchPage(p)">
                             <img :src="profileUrl(p)" draggable="false" alt="profile" class="front clickable"
@@ -29,29 +29,36 @@
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component';
 import htmlTop from "@/assets/home-top.md";
+import htmlTopHant from "@/assets/home-top.zh_hant.md";
 import htmlBottom from "@/assets/home-bottom.md";
-import { PersonMeta } from "@/logic/data";
-import { dataHost, replaceUrlVars } from "@/logic/config";
+import htmlBottomHant from "@/assets/home-bottom.zh_hant.md";
+import {PersonMeta} from "@/logic/data";
+import {dataHost, getLang, replaceUrlVars} from "@/logic/config";
 import urljoin from "url-join";
-import { useHead } from '@vueuse/head'
+import { info } from '@/logic/utils';
+import {fetchWithLang} from "@/logic/helper";
+import { useHead } from "@vueuse/head";
 
 @Options({})
 export default class Home extends Vue {
     clicked = ''
     showAdd = false
 
-    htmlTop = htmlTop
-    htmlBottom = htmlBottom
+    lang = getLang()
+    htmlTop = this.lang === 'zh_hans' ?  htmlTop : htmlTopHant
+    htmlBottom = this.lang === 'zh_hans' ? htmlBottom : htmlBottomHant
 
     people: PersonMeta[] = null as never as PersonMeta[]
 
-    created(): void {
-        fetch(urljoin(dataHost, 'people-list.json'))
+    created(): void
+    {
+        info(`Language: ${this.lang}`)
+        fetchWithLang(urljoin(dataHost, 'people-list.json'))
             .then(it => it.text())
             .then(it => {
                 this.people = JSON.parse(it)
-                console.log(it)
-                console.log(this.people)
+                // console.log(it)
+                // console.log(this.people)
             })
 
         useHead({
@@ -68,8 +75,9 @@ export default class Home extends Vue {
         })
     }
 
-    switchPage(p: PersonMeta): void {
-        console.log("Called, " + p.id)
+    switchPage(p: PersonMeta): void
+    {
+        info(`switchPage(${p.id})`)
         this.$router.push(`/profile/${p.id}`)
     }
 
