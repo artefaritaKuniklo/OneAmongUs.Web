@@ -1,5 +1,5 @@
 <template>
-    <Divider height="5px"/>
+    <Divider height="5px" />
     <div id="title" class="fbox-vcenter unselectable" v-if="['Home', 'About'].includes(String($route.name))">
         <div id="title-txt">那些秋叶</div>
         <div id="title-sub">One Among Us</div>
@@ -12,18 +12,32 @@
         </div>
     </div>
 
-    <router-view id="router"/>
+    <router-view id="router" />
 
-    <Divider height="5px"/>
+    <Divider height="5px" />
 </template>
 
 <script lang="ts">
-import {Options, Vue} from 'vue-class-component';
+import { Options, Vue } from 'vue-class-component';
 import Divider from "@/components/divider.vue";
+import { useHead } from "@vueuse/head"
 
-@Options({components: {Divider}})
-export default class App extends Vue
-{
+@Options({ components: { Divider } })
+export default class App extends Vue {
+    created(): void {
+        useHead({
+            meta: [
+                {
+                    name: "og:title",
+                    content: "One-Among US"
+                },
+                {
+                    name: "og:image",
+                    content: "https://github.com/one-among-us/web/raw/master/public/banner.png"
+                },
+            ]
+        })
+    }
 }
 </script>
 

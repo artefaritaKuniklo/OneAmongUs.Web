@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from '../views/Home.vue'
 import Profile from "@/views/Profile.vue";
 import EditInfo from "@/views/EditInfo.vue";
@@ -33,14 +33,15 @@ const routes: Array<RouteRecordRaw> = [
 
 const router = createRouter({
     history: createWebHistory(),
-    routes,
+    routes
 
     // @ts-ignore Automatically scroll to top
-    scrollBehavior: (to, from, savedPosition) => {
-        if (savedPosition) return savedPosition
-        else if (to.hash) return {selector: to.hash}
-        else return {x: 0, y: 0}
-    }
+    // scrollBehavior: (to, from, savedPosition) => {
+    //     if (savedPosition) return savedPosition
+    //     else if (to.hash) return {selector: to.hash}
+    //     else return {x: 0, y: 0}
+    // }
 })
 
-export default router
+
+export default { router, routes }

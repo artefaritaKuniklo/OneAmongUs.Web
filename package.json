@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "serve": "vite",
-    "build": "vue-tsc --noEmit && yarn lint && vite build",
+    "build": "vue-tsc --noEmit && yarn lint && vite-ssg build",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.0.10",
     "@fortawesome/fontawesome-free": "^6.1.2",
     "@primer/octicons": "^17.4.1",
+    "@vueuse/head": "^1.0.22",
     "core-js": "^3.24.1",
     "element-plus": "^2.2.14",
     "json5": "^2.2.0",
@@ -19,6 +20,7 @@
     "pangu": "^4.0.7",
     "sanitize-html": "^2.7.1",
     "url-join": "^5.0.0",
+    "vite-ssg": "^0.22.1",
     "vue": "^3.0.0",
     "vue-router": "^4.1.4"
   },

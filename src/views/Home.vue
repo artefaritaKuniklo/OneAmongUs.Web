@@ -1,42 +1,42 @@
 <template>
     <div>
-    <div id="home" :class="clicked ? 'clicked' : ''">
-        <div class="introduction markdown-content" v-html="htmlTop" />
+        <div id="home" :class="clicked ? 'clicked' : ''">
+            <div class="introduction markdown-content" v-html="htmlTop" />
 
-        <div id="profiles" class="unselectable" v-if="people">
-            <div class="profile" v-for="p, i in people" :key="i">
-                <div class="back"/>
+            <div id="profiles" class="unselectable" v-if="people">
+                <div class="profile" v-for="p, i in people" :key="i">
+                    <div class="back" />
                     <a :href="`/profile/${p.id}`" @click.exact.prevent.stop="() => false">
                         <transition name="fade" @after-leave="() => switchPage(p)">
                             <img :src="profileUrl(p)" draggable="false" alt="profile" class="front clickable"
-                                 @click.exact="() => { if (!clicked) { clicked = p.name; } return false }"
-                                 v-if="clicked !== p.name">
+                                @click.exact="() => { if (!clicked) { clicked = p.name; } return false }"
+                                v-if="clicked !== p.name">
                         </transition>
                     </a>
-                <div class="sub-text font-custom">{{p.name}}</div>
-                <div class="bookmark"/>
+                    <div class="sub-text font-custom">{{ p.name }}</div>
+                    <div class="bookmark" />
+                </div>
+                <div class="profile" v-if="showAdd">
+                    <div class="back add fbox-vcenter">+</div>
+                </div>
             </div>
-            <div class="profile" v-if="showAdd">
-                <div class="back add fbox-vcenter">+</div>
-            </div>
-        </div>
 
-        <div class="introduction markdown-content" v-html="htmlBottom" />
-    </div>
+            <div class="introduction markdown-content" v-html="htmlBottom" />
+        </div>
     </div>
 </template>
 
 <script lang="ts">
-import {Options, Vue} from 'vue-class-component';
+import { Options, Vue } from 'vue-class-component';
 import htmlTop from "@/assets/home-top.md";
 import htmlBottom from "@/assets/home-bottom.md";
-import {PersonMeta} from "@/logic/data";
-import {dataHost, replaceUrlVars} from "@/logic/config";
+import { PersonMeta } from "@/logic/data";
+import { dataHost, replaceUrlVars } from "@/logic/config";
 import urljoin from "url-join";
+import { useHead } from '@vueuse/head'
 
 @Options({})
-export default class Home extends Vue
-{
+export default class Home extends Vue {
     clicked = ''
     showAdd = false
 
@@ -45,8 +45,7 @@ export default class Home extends Vue
 
     people: PersonMeta[] = null as never as PersonMeta[]
 
-    created(): void
-    {
+    created(): void {
         fetch(urljoin(dataHost, 'people-list.json'))
             .then(it => it.text())
             .then(it => {
@@ -54,16 +53,27 @@ export default class Home extends Vue
                 console.log(it)
                 console.log(this.people)
             })
+
+        useHead({
+            meta: [
+                {
+                    name: "og:title",
+                    content: "One-Among US"
+                },
+                {
+                    name: "og:image",
+                    content: "https://github.com/one-among-us/web/raw/master/public/banner.png"
+                },
+            ]
+        })
     }
 
-    switchPage(p: PersonMeta): void
-    {
+    switchPage(p: PersonMeta): void {
         console.log("Called, " + p.id)
         this.$router.push(`/profile/${p.id}`)
     }
 
-    profileUrl(p: PersonMeta): string
-    {
+    profileUrl(p: PersonMeta): string {
         return replaceUrlVars(p.profileUrl, p.id)
     }
 }
