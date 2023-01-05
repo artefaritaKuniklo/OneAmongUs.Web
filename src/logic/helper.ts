@@ -86,7 +86,9 @@ export function reconstructUrl(input: URL | RequestInfo, callback: (URL) => URL 
  */
 export function fetchWithParams(input: URL | RequestInfo, init?: RequestInitWithParams): Promise<Response>
 {
-    return fetch(reconstructUrl(input, u => { u.search = new URLSearchParams(init?.params ?? {}).toString() }), init)
+    if (globalThis.window) {
+        return fetch(reconstructUrl(input, u => { u.search = new URLSearchParams(init?.params ?? {}).toString() }), init)
+    }
 }
 
 /**

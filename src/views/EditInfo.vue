@@ -73,15 +73,18 @@ export default class EditInfo extends Vue
     {
         // TODO: Handle errors
         // Get data from server
-        fetch(urljoin(peopleUrl(this.userid), `info.json`))
-            .then(it => it.text())
-            .then(it => {
-                this.p = parsePeopleJson(it)
-                this.initialJson = this.json()
-                this.p.info.forEach((a) => this.editInfo.push({k: a[0], v: a[1]}))
-                this.p.websites.forEach((a) => this.editWebsites.push({k: a[0], v: a[1]}))
-                this.change()
-            })
+        // eslint-disable-next-line no-undef
+        if (globalThis.window) {
+            fetch(urljoin(peopleUrl(this.userid), `info.json`))
+                .then(it => it.text())
+                .then(it => {
+                    this.p = parsePeopleJson(it)
+                    this.initialJson = this.json()
+                    this.p.info.forEach((a) => this.editInfo.push({k: a[0], v: a[1]}))
+                    this.p.websites.forEach((a) => this.editWebsites.push({k: a[0], v: a[1]}))
+                    this.change()
+                })
+        }
     }
 
     change(): void

@@ -6,41 +6,40 @@
             <p class="comment" v-for="c in comments" :key="c.id">
                 <span class="content" v-html="c.content"></span>
                 <span class="from anonymous" v-if="c.anonymous">——匿名小可爱</span>
-                <span class="from" v-else>——{{c.submitter}}</span>
+                <span class="from" v-else>——{{ c.submitter }}</span>
             </p>
         </div>
 
         <div id="add-comment">
             <textarea id="comment-textarea" v-model="textInput" placeholder="添加留言... （支持 Markdown 哦！"
-                      @input="resizeInput" ref="input"/>
+                @input="resizeInput" ref="input" />
             <div id="send-comment-btn" v-if="textInput.length > 0">
-                <span class="char-count unselectable">{{textInput.length}} 字（已存草稿）</span>
-                <i class="fas fa-paper-plane clickable" @click="btnSend"/>
+                <span class="char-count unselectable">{{ textInput.length }} 字（已存草稿）</span>
+                <i class="fas fa-paper-plane clickable" @click="btnSend" />
             </div>
 
             <MarkdownTooltip text-area-id="comment-textarea"></MarkdownTooltip>
         </div>
 
-        <SubmitPrompt v-if="showCaptchaPrompt" @submit="submitRequest" @close="showCaptchaPrompt = false"/>
+        <SubmitPrompt v-if="showCaptchaPrompt" @submit="submitRequest" @close="showCaptchaPrompt = false" />
     </div>
 </template>
 
 <script lang="ts">
-import {Options, Vue} from 'vue-class-component';
-import {Prop} from "vue-property-decorator";
-import {Person} from "@/logic/data";
-import SubmitPrompt, {CaptchaResponse} from "@/components/SubmitPrompt.vue";
-import {ElMessage} from "element-plus/es";
-import {fetchText} from "@/logic/helper";
-import {backendHost} from "@/logic/config";
-import {ElMessageBox} from "element-plus";
+import { Options, Vue } from 'vue-class-component';
+import { Prop } from "vue-property-decorator";
+import { Person } from "@/logic/data";
+import SubmitPrompt, { CaptchaResponse } from "@/components/SubmitPrompt.vue";
+import { ElMessage } from "element-plus/es";
+import { fetchText } from "@/logic/helper";
+import { backendHost } from "@/logic/config";
+import { ElMessageBox } from "element-plus";
 import MarkdownTooltip from "@/components/MarkdownTooltip.vue";
-import {error, info} from "@/logic/utils";
-import {initSpoilers, mdParseInline} from "tg-blog";
+import { error, info } from "@/logic/utils";
+import { initSpoilers, mdParseInline } from "tg-blog";
 
-@Options({components: {MarkdownTooltip, SubmitPrompt}})
-export default class ProfileComments extends Vue
-{
+@Options({ components: { MarkdownTooltip, SubmitPrompt } })
+export default class ProfileComments extends Vue {
     declare $refs: {
         input: HTMLTextAreaElement
     }
@@ -52,19 +51,20 @@ export default class ProfileComments extends Vue
 
     showCaptchaPrompt = false
 
-    get comments()
-    {
-        return this.p.comments.map(c => {return {...c,
-            anonymous: c.submitter === "Anonymous",
-            content: mdParseInline(c.content)
-        }})
+    get comments() {
+        return this.p.comments.map(c => {
+            return {
+                ...c,
+                anonymous: c.submitter === "Anonymous",
+                content: mdParseInline(c.content)
+            }
+        })
     }
 
     /**
      * Send button
      */
-    btnSend()
-    {
+    btnSend() {
         // Show submit prompt
         this.showCaptchaPrompt = true
     }
@@ -72,15 +72,14 @@ export default class ProfileComments extends Vue
     /**
      * Submit comment request
      */
-    submitRequest(p: CaptchaResponse)
-    {
+    submitRequest(p: CaptchaResponse) {
         this.showCaptchaPrompt = false
         ElMessage.success('正在提交留言...')
 
-        const params = {id: this.p.id, content: this.textInput, ...p}
+        const params = { id: this.p.id, content: this.textInput, ...p }
         info(params)
 
-        fetchText(backendHost + '/comment/add', {method: 'POST', params})
+        fetchText(backendHost + '/comment/add', { method: 'POST', params })
             .then(() => {
                 this.textInput = ""
                 ElMessageBox.alert('提交成功！谢谢你！\n我们审核之后会给你发邮件')
@@ -94,17 +93,18 @@ export default class ProfileComments extends Vue
     /**
      * Load saved textinput from localStorage
      */
-    created()
-    {
+    created() {
         this.textInputKey = `draft-${this.p.id}`
-        this.textInputCache = localStorage.getItem(this.textInputKey) ?? ""
+        // eslint-disable-next-line no-undef
+        if (globalThis.window) {
+            this.textInputCache = localStorage.getItem(this.textInputKey) ?? ""
+        }
     }
 
     /**
      * Get cached textinput
      */
-    get textInput()
-    {
+    get textInput() {
         return this.textInputCache
     }
 
@@ -112,14 +112,15 @@ export default class ProfileComments extends Vue
      * Set text and save localstorage
      * @param s
      */
-    set textInput(s: string)
-    {
+    set textInput(s: string) {
         this.textInputCache = s
-        localStorage.setItem(this.textInputKey, s)
+        // eslint-disable-next-line no-undef
+        if (globalThis.window) {
+            localStorage.setItem(this.textInputKey, s)
+        }
     }
 
-    mounted()
-    {
+    mounted() {
         // Set initial size
         this.resizeInput()
 
@@ -130,8 +131,7 @@ export default class ProfileComments extends Vue
     /**
      * Auto resize
      */
-    resizeInput()
-    {
+    resizeInput() {
         const el = this.$refs.input
         el.style.height = "auto"
         el.style.height = `${el.scrollHeight + 18}px`

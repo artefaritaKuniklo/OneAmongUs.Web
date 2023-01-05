@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
+import {createRouter, createWebHistory, RouteRecordRaw, RouterHistory} from 'vue-router'
 import Home from '../views/Home.vue'
 import Profile from "@/views/Profile.vue";
 import EditInfo from "@/views/EditInfo.vue";
@@ -40,7 +40,7 @@ const routes: Array<RouteRecordRaw> = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: {} as RouterHistory,
     routes
 
     // @ts-ignore Automatically scroll to top

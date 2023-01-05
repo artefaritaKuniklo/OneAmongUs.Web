@@ -72,12 +72,15 @@ export default class ProfileCard extends Vue
         this.flowersGiven = localStorage.getItem(`last_flower_given@${this.userid}`) === getTodayDate()
 
         // TODO: Handle errors
-        fetch(backendHost + `/flowers/get?id=${this.userid}`)
-            .then(it => it.text())
-            .then(it => {
-                info(`Flowers: ${it}`)
-                this.flowers = parseInt(it)
-            })
+        // eslint-disable-next-line no-undef
+        if (globalThis.window) {
+            fetch(backendHost + `/flowers/get?id=${this.userid}`)
+                .then(it => it.text())
+                .then(it => {
+                    info(`Flowers: ${it}`)
+                    this.flowers = parseInt(it)
+                })
+        }
     }
 
     getIcon(platform: string): string
@@ -95,16 +98,19 @@ export default class ProfileCard extends Vue
         // TODO: Handle errors
         // TODO: Better user interaction (probably like +1 animation or something)
         this.loading.add('flower')
-        fetch(backendHost + `/flowers/give?id=${this.userid}`)
-            .then(() =>
-            {
-                this.flowers += 1
-
-                // Set flowers given
-                this.flowersGiven = true
-                localStorage.setItem(`last_flower_given@${this.userid}`, getTodayDate())
-            })
-            .finally(() => this.loading.delete('flower'))
+        // eslint-disable-next-line no-undef
+        if (globalThis.window) {
+            fetch(backendHost + `/flowers/give?id=${this.userid}`)
+                .then(() =>
+                {
+                    this.flowers += 1
+    
+                    // Set flowers given
+                    this.flowersGiven = true
+                    localStorage.setItem(`last_flower_given@${this.userid}`, getTodayDate())
+                })
+                .finally(() => this.loading.delete('flower'))
+        }
     }
 
     get flowerText(): string
