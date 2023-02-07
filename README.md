@@ -1,23 +1,42 @@
-# One Among Us - Web Frontend
+# Nuxt 3 Minimal Starter
 
-是 [one-among.us](https://one-among.us/) 的前端源码。欢迎贡献！
+Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
-## GitHub Repo 结构
+## Setup
 
-* [data](https://github.com/one-among-us/data) - 条目内容存储
-* [web](https://github.com/one-among-us/web) - 网页前端源码
-* [backend](https://github.com/one-among-us/backend) - 献花和编辑后端源码
+Make sure to install the dependencies:
 
-## 设置开发环境
-
-```sh
-# 克隆项目
-git clone https://github.com/one-among-us/web
-cd web
-
-# 安装依赖（如果没有安装 Yarn 的话请先安装 Yarn）
+```bash
+# yarn
 yarn install
 
-# 运行
-yarn serve
+# npm
+npm install
+
+# pnpm
+pnpm install
 ```
+
+## Development Server
+
+Start the development server on http://localhost:3000
+
+```bash
+npm run dev
+```
+
+## Production
+
+Build the application for production:
+
+```bash
+npm run build
+```
+
+Locally preview production build:
+
+```bash
+npm run preview
+```
+
+Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
