@@ -15,7 +15,7 @@ import {Options, Vue} from 'vue-class-component';
 import {Prop} from "vue-property-decorator";
 import {parsePeopleJson, Person} from "@/logic/data";
 import {fetchWithLang} from "@/logic/helper"
-import {peopleUrl, replaceUrlVars, setLang} from "@/logic/config";
+import {peopleUrl, replaceUrlVars, setLang, Lang} from "@/logic/config";
 import MDX from "@/components/MDX.vue";
 import urljoin from "url-join";
 import ProfileComments from "@/views/ProfileComments.vue";
@@ -26,7 +26,7 @@ export default class Profile extends Vue
 {
     @Prop({required: true}) userid!: string
     @Prop({default: false}) screenshotMode!: boolean
-    @Prop({default: false}) en!: boolean
+    @Prop({default: ''}) lang!: Lang
 
 
     p?: Person = null
@@ -34,11 +34,14 @@ export default class Profile extends Vue
 
     created(): void
     {
-        if (this.en){
-            setLang('en');
-        }
-
         const pu = peopleUrl(this.userid)
+
+        localStorage.setItem('showBtn', '1')
+        
+        if (this.lang) {
+            setLang(this.lang)
+            localStorage.setItem('showBtn', '')
+        }
 
         // TODO: Handle errors
         // Get data from server
@@ -50,16 +53,9 @@ export default class Profile extends Vue
 
         // TODO: Handle errors
         // Load compile MDX code from server
-        if (!this.screenshotMode) fetchWithLang(urljoin(pu, `page.js`))
-            .then(it => it.text())
+        if (!this.screenshotMode) fetchWithLang(urljoin(pu, `page.json`))
+            .then(it => it.json())
             .then(it => this.compiledMdxCode = replaceUrlVars(it, this.userid))
-    }
-
-    unmounted():void
-    {
-        if (this.en){
-            setLang('zh_hant');
-        }
     }
 }
 </script>
