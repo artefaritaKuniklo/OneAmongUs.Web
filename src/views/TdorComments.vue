@@ -25,6 +25,7 @@ import {Person} from "@/logic/data";
 import {fetchText} from "@/logic/helper";
 import {error, info} from "@/logic/utils";
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 import {initSpoilers} from "tg-blog";
 import {Component, Vue} from 'vue-facing-decorator';
 
@@ -69,6 +70,7 @@ export default class TdorComments extends Vue {
             title: t.nav_comment_submit,
             showConfirmButton: false,
             icon: null,
+            theme: getSwalTheme(),
             didOpen: (() => {
                 Swal.showLoading(null);
                 fetchText(backendHost + '/comment/add', { method: 'POST', params })
@@ -82,7 +84,8 @@ export default class TdorComments extends Vue {
                             timerProgressBar: true,
                             showConfirmButton: true,
                             confirmButtonText: t.nav_ok_1,
-                            showCloseButton: true
+                            showCloseButton: true,
+                            theme: getSwalTheme()
                         })
                     })
                     .catch(err => {
@@ -94,7 +97,8 @@ export default class TdorComments extends Vue {
                             timer: 5000,
                             timerProgressBar: true,
                             showConfirmButton: false,
-                            showCloseButton: false
+                            showCloseButton: false,
+                            theme: getSwalTheme()
                         })
                     })
             })

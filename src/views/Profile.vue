@@ -23,6 +23,7 @@ import {fetchWithLang, randint, scheduledTask, trim} from "@/logic/helper";
 import {sunriseTime, sunsetTime} from "@/logic/sunset";
 import ProfileComments from "@/views/ProfileComments.vue";
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 import urljoin from "url-join";
 import {Component, Prop, Vue} from 'vue-facing-decorator';
 import {getParams} from '@/logic/uwu'
@@ -151,6 +152,7 @@ export default class Profile extends Vue {
                 icon: 'warning',
                 timer: 30_000,
                 timerProgressBar: true,
+                theme: getSwalTheme()
             })
         }
 
@@ -165,7 +167,8 @@ export default class Profile extends Vue {
                 allowOutsideClick: false,
                 customClass: { popup: 'view-limit-alert' },
                 allowEscapeKey: false,
-                allowEnterKey: false
+                allowEnterKey: false,
+                theme: getSwalTheme()
             })
 
             // Easter egg: Watch when the user removes the DOM element in devtools
@@ -182,6 +185,7 @@ export default class Profile extends Vue {
                             title: t.view_limit.dom_removed_title,
                             text: t.view_limit.dom_removed,
                             icon: 'info',
+                            theme: getSwalTheme()
                         })
 
                         // Reset the view limit
@@ -214,6 +218,7 @@ export default class Profile extends Vue {
                                 icon: 'warning',
                                 timer: 30_000,
                                 timerProgressBar: true,
+                                theme: getSwalTheme()
                             })
                         }
                         while (view_limit_entries.length < limit.errorLimit)

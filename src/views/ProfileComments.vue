@@ -50,6 +50,7 @@ import {Comment, Person} from "@/logic/data";
 import {fetchText, trim} from "@/logic/helper";
 import {error, info} from "@/logic/utils";
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 import {initSpoilers} from '@/logic/spoilers';
 import {mdParseInline} from "@/logic/markdown";
 import {Component, Prop, Vue} from 'vue-facing-decorator';
@@ -131,6 +132,7 @@ export default class ProfileComments extends Vue {
             title: t.nav_comment_submit,
             showConfirmButton: false,
             icon: null,
+            theme: getSwalTheme(),
             didOpen: (() => {
                 Swal.showLoading(null);
                 fetchText(backendHost + '/comment/add', { method: 'POST', params })
@@ -143,7 +145,8 @@ export default class ProfileComments extends Vue {
                             timerProgressBar: true,
                             showConfirmButton: true,
                             confirmButtonText: t.nav_ok_1,
-                            showCloseButton: true
+                            showCloseButton: true,
+                            theme: getSwalTheme()
                         })
                         this.comments.push({
                             content: mdParseInline(this.textInput.replaceAll("\n", "<br />")),
@@ -181,7 +184,8 @@ export default class ProfileComments extends Vue {
                             timer: 5000,
                             timerProgressBar: true,
                             showConfirmButton: false,
-                            showCloseButton: false
+                            showCloseButton: false,
+                            theme: getSwalTheme()
                         })
                         this.resizeInput()
                     })

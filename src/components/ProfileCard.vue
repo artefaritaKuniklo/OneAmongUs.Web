@@ -67,6 +67,7 @@ import {info} from '@/logic/utils';
 import router from "@/router";
 import {Icon} from '@iconify/vue';
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 import urljoin from 'url-join';
 import {Component, Prop, Vue} from 'vue-facing-decorator';
 
@@ -173,7 +174,8 @@ export default class ProfileCard extends Vue {
             iconColor: '#d20f39',
             allowEscapeKey: false,
             allowEnterKey: false,
-            customClass: { popup: 'view-limit-alert' }
+            customClass: { popup: 'view-limit-alert' },
+            theme: getSwalTheme()
         }).then((result) => {
             if (result.isConfirmed) {
                 this.target = this.sourceTarget;
@@ -189,7 +191,8 @@ export default class ProfileCard extends Vue {
             showConfirmButton: true,
             showCancelButton: true,
             confirmButtonText: t.nav_profile_card,
-            cancelButtonText: t.nav_introduction
+            cancelButtonText: t.nav_introduction,
+            theme: getSwalTheme()
         }).then((result) => {
             if (result.isConfirmed)
                 router.push(`/edit-info/${this.p.id}`);

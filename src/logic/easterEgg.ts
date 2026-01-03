@@ -3,6 +3,7 @@ import Swal from "sweetalert2"
 import {dataHost, t} from "./config"
 import {scheduledTask, toast, getResponseSync, checkSubset, randint} from "./helper"
 import {EasterEgg} from "@/logic/data";
+import {getSwalTheme} from "@/logic/theme";
 
 const registedEggItem = [
     'hasFlowered', 'preferredName'
@@ -35,7 +36,8 @@ function achieveAll() {
                 showCancelButton: false,
                 showConfirmButton: false,
                 showCloseButton: false,
-                showDenyButton: false
+                showDenyButton: false,
+                theme: getSwalTheme()
             })
         } else {
             if (localStorage.getItem('allShown'))
@@ -95,6 +97,7 @@ export function handleEasterEgg(userid?: string) {
                     showConfirmButton: false,
                     showCancelButton: false,
                     timerProgressBar: true,
+                    theme: getSwalTheme()
                 })
             }
         }
@@ -181,7 +184,8 @@ export function handleEasterEgg(userid?: string) {
                         timer: 5000,
                         showConfirmButton: false,
                         showCancelButton: false,
-                        timerProgressBar: true
+                        timerProgressBar: true,
+                        theme: getSwalTheme()
                     })
                 }
             }

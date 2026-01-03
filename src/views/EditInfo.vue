@@ -33,6 +33,7 @@ import {fetchText} from "@/logic/helper";
 import {error, info} from "@/logic/utils";
 import router from "@/router";
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 import urljoin from "url-join";
 import {Component, Prop, Vue} from 'vue-facing-decorator';
 
@@ -161,7 +162,8 @@ export default class EditInfo extends Vue {
                 text: "(╯‵□′)╯︵┻━┻",
                 icon: "error",
                 confirmButtonText: t.nav_ok_0,
-                showCloseButton: false
+                showCloseButton: false,
+                theme: getSwalTheme()
             })
             return
         }
@@ -178,6 +180,7 @@ export default class EditInfo extends Vue {
             text: t.nav_description_pull_request,
             icon: null,
             showConfirmButton: false,
+            theme: getSwalTheme(),
             didOpen: (() => {
                 Swal.showLoading(null);
                 fetchText(backendHost + '/edit/info', { method: 'POST', params })
@@ -190,7 +193,8 @@ export default class EditInfo extends Vue {
                             timer: 5000,
                             timerProgressBar: true,
                             showConfirmButton: true,
-                            confirmButtonText: t.nav_ok_1
+                            confirmButtonText: t.nav_ok_1,
+                            theme: getSwalTheme()
                         }).then((result) => {
                             if ((result.isConfirmed) || (result.dismiss === Swal.DismissReason.timer))
                                 router.push(`/profile/${this.p.id}`);
@@ -204,7 +208,8 @@ export default class EditInfo extends Vue {
                             icon: "error",
                             timer: 5000,
                             timerProgressBar: true,
-                            showConfirmButton: false
+                            showConfirmButton: false,
+                            theme: getSwalTheme()
                         })
                     })
             })

@@ -20,3 +20,8 @@ export function setTheme(theme: Theme) {
 export function applyTheme() {
     document.documentElement.setAttribute('data-theme', getTheme())
 }
+
+export function getSwalTheme(): 'dark' | 'light' | 'auto' {
+    const theme = getTheme()
+    return theme === 'unset' ? 'auto' : theme
+}

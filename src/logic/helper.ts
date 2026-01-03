@@ -3,6 +3,7 @@ import {Icon} from "@/logic/icon";
 import {info} from "@/logic/utils";
 import moment from 'moment'
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 
 /**
  * https://github.com/moh3n9595/js-abbreviation-number
@@ -158,6 +159,7 @@ export function toast(title: string, text: string, img: string, background: stri
         showConfirmButton: false,
         showCancelButton: false,
         timerProgressBar: true,
+        theme: getSwalTheme(),
         color: color
     })
 }

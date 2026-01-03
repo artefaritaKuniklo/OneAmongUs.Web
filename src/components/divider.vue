@@ -11,6 +11,7 @@ import {getLang, i18n} from '@/logic/config';
 import {transColors} from "@/logic/constants";
 import {viaFetch} from "@/logic/viaFetch";
 import Swal from 'sweetalert2';
+import {getSwalTheme} from "@/logic/theme";
 import {Component, Prop, Vue} from 'vue-facing-decorator';
 
 @Component({ components: {} })
@@ -39,7 +40,8 @@ export default class Divider extends Vue {
             showCancelButton: false,
             timerProgressBar: true,
             iconHtml: `<img style="width: 64px;height: 64px;border: none" src="/img/easterEgg.png"></img>`,
-            iconColor: "#00000000"
+            iconColor: "#00000000",
+            theme: getSwalTheme()
         })
     }
 }
