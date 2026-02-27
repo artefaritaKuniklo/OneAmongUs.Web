@@ -7,6 +7,7 @@
             <!-- Language tabs -->
             <div class="lang-tabs" role="tablist">
                 <button v-for="lang in langs" :key="lang.key"
+                     :id="'tab-' + lang.key"
                      class="lang-tab" :class="{ active: activeLang === lang.key }"
                      role="tab"
                      :aria-selected="activeLang === lang.key"
@@ -18,9 +19,9 @@
 
             <!-- Per-language info and desc -->
             <template v-for="lang in langs" :key="lang.key">
-                <div v-show="activeLang === lang.key" :id="'panel-' + lang.key" role="tabpanel">
+                <div v-show="activeLang === lang.key" :id="'panel-' + lang.key" role="tabpanel" :aria-labelledby="'tab-' + lang.key">
                     <div class="fields info">
-                        <div class="input-box" v-for="(item, i) in editInfoMap[lang.key]" :key="i">
+                        <div class="input-box" v-for="item in editInfoMap[lang.key]" :key="item._id">
                             <input class="key" v-model="item.k" @change="changeInfo(lang.key)"/>
                             <input class="value" v-model="item.v" @change="changeInfo(lang.key)"/>
                         </div>
@@ -30,7 +31,7 @@
 
             <div class="head-text websites">{{ t.nav_website }}</div>
             <div class="fields websites">
-                <div class="input-box" v-for="(web, i) in editWebsites" :key="i">
+                <div class="input-box" v-for="web in editWebsites" :key="web._id">
                     <input class="key" v-model="web.k" @change="changeWebsites"/>
                     <input class="value" v-model="web.v" @change="changeWebsites"/>
                 </div>
@@ -54,9 +55,16 @@ import {getSwalTheme} from "@/logic/theme";
 import urljoin from "url-join";
 import {Component, Prop, Vue} from 'vue-facing-decorator';
 
+let _uid = 0
+
 interface KVPair {
     k: string,
-    v: string
+    v: string,
+    _id: number
+}
+
+function kv(k: string, v: string): KVPair {
+    return { k, v, _id: ++_uid }
 }
 
 export function removeEmpty(arr: KVPair[]): void {
@@ -69,7 +77,7 @@ export function removeEmpty(arr: KVPair[]): void {
 
 function ensureEmpty(list: KVPair[]): void {
     if (list.filter(it => !it.k && !it.v).length === 0) {
-        list.push({ k: '', v: '' })
+        list.push(kv('', ''))
     }
 }
 
@@ -114,7 +122,7 @@ export default class EditInfo extends Vue {
 
             data[lang.key] = {
                 info: Object.fromEntries(infoEntries),
-                desc,
+                ...(desc ? { desc } : {}),
             }
         }
 
@@ -140,21 +148,22 @@ export default class EditInfo extends Vue {
 
                     // Populate info for this language
                     p.info.forEach(a => {
-                        this.editInfoMap[lang.key].push({ k: a[0], v: String(a[1]) })
+                        this.editInfoMap[lang.key].push(kv(a[0], String(a[1])))
                     })
 
                     // Append desc as a KV pair in info
-                    this.editInfoMap[lang.key].push({ k: descKeys[lang.key], v: p.desc || '' })
+                    this.editInfoMap[lang.key].push(kv(descKeys[lang.key], p.desc || ''))
 
-                    // Websites are shared (same across languages), load once
-                    if (this.editWebsites.length === 0) {
-                        p.websites.forEach(a => this.editWebsites.push({ k: a[0], v: a[1] }))
+                    // Websites are shared – load only from primary language
+                    if (lang.key === 'zh_hans') {
+                        p.websites.forEach(a => this.editWebsites.push(kv(a[0], a[1])))
                     }
                 })
                 .catch(err => {
                     // Missing or malformed localized file – populate with desc placeholder only
                     error(`Failed to load ${filename} for ${lang.key}: ${err.message}`)
-                    this.editInfoMap[lang.key].push({ k: descKeys[lang.key], v: '' })
+                    this.editInfoMap[lang.key].push(kv(descKeys[lang.key], ''))
+                    ensureEmpty(this.editInfoMap[lang.key])
                 })
         })
 
@@ -185,6 +194,79 @@ export default class EditInfo extends Vue {
             removeEmpty(this.editInfoMap[lang.key])
         }
         removeEmpty(this.editWebsites)
+
+        // Check for empty keys with non-empty values
+        for (const lang of langDefs) {
+            const orphan = this.editInfoMap[lang.key].find(it => !it.k && it.v)
+            if (orphan) {
+                for (const l of langDefs) ensureEmpty(this.editInfoMap[l.key])
+                ensureEmpty(this.editWebsites)
+                Swal.fire({
+                    title: t.nav_empty_key,
+                    text: t.nav_empty_key_text.replace('{lang}', lang.label),
+                    icon: 'warning',
+                    confirmButtonText: t.nav_ok_0,
+                    theme: getSwalTheme()
+                })
+                return
+            }
+        }
+        {
+            const orphan = this.editWebsites.find(it => !it.k && it.v)
+            if (orphan) {
+                for (const l of langDefs) ensureEmpty(this.editInfoMap[l.key])
+                ensureEmpty(this.editWebsites)
+                Swal.fire({
+                    title: t.nav_empty_key,
+                    text: t.nav_empty_key_text.replace('{lang}', t.nav_website),
+                    icon: 'warning',
+                    confirmButtonText: t.nav_ok_0,
+                    theme: getSwalTheme()
+                })
+                return
+            }
+        }
+
+        // Check for duplicate keys
+        for (const lang of langDefs) {
+            const keys = this.editInfoMap[lang.key].map(it => it.k).filter(k => k)
+            const seen = new Set<string>()
+            for (const k of keys) {
+                if (seen.has(k)) {
+                    // Restore empty entries for UI
+                    for (const l of langDefs) ensureEmpty(this.editInfoMap[l.key])
+                    ensureEmpty(this.editWebsites)
+                    Swal.fire({
+                        title: t.nav_duplicate_key,
+                        text: t.nav_duplicate_key_text.replace('{key}', k).replace('{lang}', lang.label),
+                        icon: 'warning',
+                        confirmButtonText: t.nav_ok_0,
+                        theme: getSwalTheme()
+                    })
+                    return
+                }
+                seen.add(k)
+            }
+        }
+        {
+            const keys = this.editWebsites.map(it => it.k).filter(k => k)
+            const seen = new Set<string>()
+            for (const k of keys) {
+                if (seen.has(k)) {
+                    for (const l of langDefs) ensureEmpty(this.editInfoMap[l.key])
+                    ensureEmpty(this.editWebsites)
+                    Swal.fire({
+                        title: t.nav_duplicate_key,
+                        text: t.nav_duplicate_key_text.replace('{key}', k).replace('{lang}', t.nav_website),
+                        icon: 'warning',
+                        confirmButtonText: t.nav_ok_0,
+                        theme: getSwalTheme()
+                    })
+                    return
+                }
+                seen.add(k)
+            }
+        }
 
         const json = this.json()
         console.log(json)
@@ -237,9 +319,8 @@ export default class EditInfo extends Vue {
                             showConfirmButton: true,
                             confirmButtonText: t.nav_ok_1,
                             theme: getSwalTheme()
-                        }).then((result) => {
-                            if ((result.isConfirmed) || (result.dismiss === Swal.DismissReason.timer))
-                                router.push(`/profile/${pid}`);
+                        }).then(() => {
+                            router.push(`/profile/${pid}`);
                         })
                     })
                     .catch(err => {
