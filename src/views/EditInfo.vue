@@ -110,15 +110,12 @@ export default class EditInfo extends Vue {
         for (const lang of langDefs) {
             const li = i18n[lang.key as Lang]
             const descKey = li.info.desc
-            const solarBornKey = li.info.solar_born
             const infoEntries: [string, string][] = []
             let desc = ''
 
             for (const it of this.editInfoMap[lang.key]) {
                 if (it.k === descKey) {
                     desc = it.v
-                } else if (it.k === solarBornKey) {
-                    // solarBorn is read-only display, skip from info output
                 } else if (it.k || it.v) {
                     infoEntries.push([it.k, it.v])
                 }

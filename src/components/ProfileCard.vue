@@ -36,14 +36,16 @@
             <ul id="fields" class="f-grow1">
                 <li v-for="info of p.info" :key="info[0]">
                     <span class="key">{{ info[0] }}：</span>
-                    <span v-if="isBornField(info[0]) && p.solarBorn"
-                          class="value born-toggle"
-                          @click="toggleBornDisplay"
-                          :title="showSolarBorn ? '' : p.solarBorn">
+                    <button v-if="isBornField(info[0]) && p.solarBorn"
+                            type="button"
+                            class="value born-toggle"
+                            @click="toggleBornDisplay"
+                            :title="showSolarBorn ? '' : p.solarBorn"
+                            :aria-label="showSolarBorn ? 'Show lunar date' : 'Show solar date'">
                         <transition name="born-fade" mode="out-in">
                             <span :key="showSolarBorn ? 'solar' : 'lunar'">{{ showSolarBorn ? p.solarBorn : info[1] }}</span>
                         </transition>
-                    </span>
+                    </button>
                     <span v-else class="value">{{ info[1] }}</span>
                 </li>
             </ul>
@@ -335,9 +337,22 @@ div:has(.view-limit-alert)
 
             .born-toggle
                 cursor: pointer
+                background: none
+                border: none
+                padding: 0
+                margin: 0
+                font: inherit
+                color: inherit
+                text-align: left
+                display: inline
 
                 &:hover
                     opacity: 0.7
+
+                &:focus-visible
+                    outline: 2px solid currentColor
+                    outline-offset: 2px
+                    border-radius: 2px
 
 // Born date toggle animation
 .born-fade-enter-active, .born-fade-leave-active
