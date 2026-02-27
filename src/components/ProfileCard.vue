@@ -36,7 +36,15 @@
             <ul id="fields" class="f-grow1">
                 <li v-for="info of p.info" :key="info[0]">
                     <span class="key">{{ info[0] }}：</span>
-                    <span class="value">{{ info[1] }}</span>
+                    <span v-if="isBornField(info[0]) && p.solarBorn"
+                          class="value born-toggle"
+                          @click="toggleBornDisplay"
+                          :title="showSolarBorn ? '' : p.solarBorn">
+                        <transition name="born-fade" mode="out-in">
+                            <span :key="showSolarBorn ? 'solar' : 'lunar'">{{ showSolarBorn ? p.solarBorn : info[1] }}</span>
+                        </transition>
+                    </span>
+                    <span v-else class="value">{{ info[1] }}</span>
                 </li>
             </ul>
             <div id="websites" v-if="p.websites?.length">
@@ -62,7 +70,7 @@
 import {backendHost, dataHost, replaceUrlVars, t} from "@/logic/config";
 import {Person} from "@/logic/data";
 import {handleBirthdayToast, handleFlowerToast} from '@/logic/easterEgg';
-import {abbreviateNumber, getResponseSync, getTodayDate} from "@/logic/helper";
+import {abbreviateNumber, getResponseSync, getTodayDate, isTodayBirthday} from "@/logic/helper";
 import {info} from '@/logic/utils';
 import router from "@/router";
 import {Icon} from '@iconify/vue';
@@ -84,6 +92,7 @@ export default class ProfileCard extends Vue {
     target = '.'
     sourceTarget = '.'
     inWarning = false
+    showSolarBorn = false
 
     loading = new Set<string>()
 
@@ -95,12 +104,10 @@ export default class ProfileCard extends Vue {
         fetch(urljoin(dataHost, 'birthday-list.json'))
             .then(it => it.json())
             .then(it => {
-                it = (it as [string, string][])
+                it = (it as [string, string, string | null][])
                 for (const v of it) {
                     if (v[0] == this.userid) {
-                        const d = new Date(v[1]);
-                        const now = new Date();
-                        if ((now.getDate() == d.getDate()) && (now.getMonth() == d.getMonth())) {
+                        if (isTodayBirthday(v)) {
                             this.isBirthday = true
                         }
                     }
@@ -199,6 +206,14 @@ export default class ProfileCard extends Vue {
             else if (result.dismiss === Swal.DismissReason.cancel)
                 open(`https://github.com/one-among-us/data/tree/main/people/${this.userid}/page.md`)
         })
+    }
+
+    isBornField(key: string): boolean {
+        return !!this.p.bornKey && key === this.p.bornKey
+    }
+
+    toggleBornDisplay(): void {
+        this.showSolarBorn = !this.showSolarBorn
     }
 
     get profileUrl(): string {
@@ -313,6 +328,25 @@ div:has(.view-limit-alert)
             .key
                 font-weight: bold
 
+            .born-toggle
+                cursor: pointer
+
+                &:hover
+                    opacity: 0.7
+
+// Born date toggle animation
+.born-fade-enter-active, .born-fade-leave-active
+    transition: opacity 0.2s ease, transform 0.2s ease
+
+.born-fade-enter-from
+    opacity: 0
+    transform: translateY(-4px)
+
+.born-fade-leave-to
+    opacity: 0
+    transform: translateY(4px)
+
+#right
     #websites
         display: flex
         gap: 10px

@@ -45,7 +45,7 @@ export const langDefs: LangDef[] = [
  */
 export function getLang(): Lang {
     if (typeof window === 'undefined') return 'en'
-    
+
     // Check if page has the ?lang= query
     // This is added to assist in archiving
     const url = new URL(window.location.href)
@@ -174,7 +174,11 @@ export const i18n = {
             strikethrough: "Strikethrough",
             code: "Code",
             spoiler: "Spoiler"
-        }
+        },
+        info: {
+            solar_born: "Solar Born",
+            desc: "Description",
+        },
     },
     "zh_hans": {
         "nav_home": "首页",
@@ -263,7 +267,11 @@ export const i18n = {
             strikethrough: "划掉",
             code: "代码",
             spoiler: "黑幕"
-        }
+        },
+        info: {
+            solar_born: "公历生日",
+            desc: "简介",
+        },
     },
     "zh_hant": {
         "nav_home": "首頁",
@@ -352,14 +360,12 @@ export const i18n = {
             strikethrough: "刪除綫",
             code: "等寬字體",
             spoiler: "劇透内容"
-        }
+        },
+        info: {
+            solar_born: "公曆生日",
+            desc: "簡介",
+        },
     }
 }
 
 export const t = i18n[getLang()]
-
-export const descKeys: Record<Lang, string> = {
-    zh_hans: '简介',
-    zh_hant: '簡介',
-    en: 'Description',
-}

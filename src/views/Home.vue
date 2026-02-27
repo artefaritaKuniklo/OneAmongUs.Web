@@ -119,6 +119,7 @@ import {
     gaussian_shuffle,
     getResponseSync,
     handleIconFromString,
+    isTodayBirthday,
     randint,
     scheduledLoopTask,
     shuffle,
@@ -306,10 +307,8 @@ export default class Home extends Vue {
         fetch(urljoin(dataHost, 'birthday-list.json'))
             .then(it => it.json())
             .then(it => {
-                for (const v of it) {
-                    const d = new Date(v[1]);
-                    const now = new Date();
-                    if (d.getDate() == now.getDate() && d.getMonth() == now.getMonth()) {
+                for (const v of (it as [string, string, string | null][])) {
+                    if (isTodayBirthday(v)) {
                         const p = JSON.parse(getResponseSync(urljoin(peopleUrl(v[0]), getLang() == 'zh_hans' ? 'info.json' : `info.${getLang()}.json`))) as Person;
                         this.birthdayList.push([v[0], p.name])
                     }

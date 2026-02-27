@@ -45,7 +45,7 @@
 
 <script lang="ts">
 import SubmitPrompt, {CaptchaResponse} from "@/components/SubmitPrompt.vue";
-import {backendHost, descKeys, getLang, Lang, langDefs, peopleUrl, t} from "@/logic/config";
+import {backendHost, getLang, i18n, Lang, langDefs, peopleUrl, t} from "@/logic/config";
 import {parsePeopleJson, Person} from "@/logic/data";
 import {fetchText} from "@/logic/helper";
 import {error, info} from "@/logic/utils";
@@ -85,7 +85,7 @@ function ensureEmpty(list: KVPair[]): void {
 export default class EditInfo extends Vue {
     @Prop() userid!: string
 
-    loaded: boolean = false
+    loaded = false
     langs = langDefs
     activeLang: string = getLang()
 
@@ -108,13 +108,17 @@ export default class EditInfo extends Vue {
         const data: Record<string, any> = {}
 
         for (const lang of langDefs) {
-            const descKey = descKeys[lang.key]
+            const li = i18n[lang.key as Lang]
+            const descKey = li.info.desc
+            const solarBornKey = li.info.solar_born
             const infoEntries: [string, string][] = []
             let desc = ''
 
             for (const it of this.editInfoMap[lang.key]) {
                 if (it.k === descKey) {
                     desc = it.v
+                } else if (it.k === solarBornKey) {
+                    // solarBorn is read-only display, skip from info output
                 } else if (it.k || it.v) {
                     infoEntries.push([it.k, it.v])
                 }
@@ -151,8 +155,19 @@ export default class EditInfo extends Vue {
                         this.editInfoMap[lang.key].push(kv(a[0], String(a[1])))
                     })
 
+                    // Insert solarBorn after the born field (for lunar birthday people)
+                    if (p.solarBorn && p.bornKey) {
+                        const bornIdx = this.editInfoMap[lang.key].findIndex(it => it.k === p.bornKey)
+                        const solarKv = kv(i18n[lang.key as Lang].info.solar_born, p.solarBorn)
+                        if (bornIdx >= 0) {
+                            this.editInfoMap[lang.key].splice(bornIdx + 1, 0, solarKv)
+                        } else {
+                            this.editInfoMap[lang.key].push(solarKv)
+                        }
+                    }
+
                     // Append desc as a KV pair in info
-                    this.editInfoMap[lang.key].push(kv(descKeys[lang.key], p.desc || ''))
+                    this.editInfoMap[lang.key].push(kv(i18n[lang.key as Lang].info.desc, p.desc || ''))
 
                     // Websites are shared – load only from primary language
                     if (lang.key === 'zh_hans') {
@@ -162,7 +177,7 @@ export default class EditInfo extends Vue {
                 .catch(err => {
                     // Missing or malformed localized file – populate with desc placeholder only
                     error(`Failed to load ${filename} for ${lang.key}: ${err.message}`)
-                    this.editInfoMap[lang.key].push(kv(descKeys[lang.key], ''))
+                    this.editInfoMap[lang.key].push(kv(i18n[lang.key as Lang].info.desc, ''))
                     ensureEmpty(this.editInfoMap[lang.key])
                 })
         })
