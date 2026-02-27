@@ -5,17 +5,20 @@
             <div id="id">@{{ userid }}</div>
 
             <!-- Language tabs -->
-            <div class="lang-tabs">
-                <div v-for="lang in langs" :key="lang.key"
+            <div class="lang-tabs" role="tablist">
+                <button v-for="lang in langs" :key="lang.key"
                      class="lang-tab" :class="{ active: activeLang === lang.key }"
+                     role="tab"
+                     :aria-selected="activeLang === lang.key"
+                     :aria-controls="'panel-' + lang.key"
                      @click="activeLang = lang.key">
                     {{ lang.label }}
-                </div>
+                </button>
             </div>
 
             <!-- Per-language info and desc -->
             <template v-for="lang in langs" :key="lang.key">
-                <div v-show="activeLang === lang.key">
+                <div v-show="activeLang === lang.key" :id="'panel-' + lang.key" role="tabpanel">
                     <div class="fields info">
                         <div class="input-box" v-for="(item, i) in editInfoMap[lang.key]" :key="i">
                             <input class="key" v-model="item.k" @change="changeInfo(lang.key)"/>
@@ -32,7 +35,7 @@
                     <input class="value" v-model="web.v" @change="changeWebsites"/>
                 </div>
             </div>
-            <div class="button submit" @click="submitBtn">{{ t.nav_submit }}</div>
+            <button class="button submit" @click="submitBtn">{{ t.nav_submit }}</button>
         </div>
 
         <SubmitPrompt v-if="submitParams" @submit="submitRequest" @close="() => submitParams = null"/>
@@ -41,7 +44,7 @@
 
 <script lang="ts">
 import SubmitPrompt, {CaptchaResponse} from "@/components/SubmitPrompt.vue";
-import {backendHost, descKeys, getLang, langDefs, peopleUrl, t} from "@/logic/config";
+import {backendHost, descKeys, getLang, Lang, langDefs, peopleUrl, t} from "@/logic/config";
 import {parsePeopleJson, Person} from "@/logic/data";
 import {fetchText} from "@/logic/helper";
 import {error, info} from "@/logic/utils";
@@ -78,8 +81,10 @@ export default class EditInfo extends Vue {
     langs = langDefs
     activeLang: string = getLang()
 
-    // Per-language editable fields
-    editInfoMap: Record<string, KVPair[]> = { zh_hans: [], zh_hant: [], en: [] }
+    // Per-language editable fields (initialized from langDefs to stay in sync)
+    editInfoMap: Record<Lang, KVPair[]> = Object.fromEntries(
+        langDefs.map(l => [l.key, []])
+    ) as Record<Lang, KVPair[]>
 
     // Shared across languages
     editWebsites: KVPair[] = []
@@ -125,7 +130,10 @@ export default class EditInfo extends Vue {
         const promises = langDefs.map(lang => {
             const filename = lang.suffix ? `info${lang.suffix}.json` : 'info.json'
             return fetch(urljoin(peopleUrl(this.userid), filename))
-                .then(it => it.text())
+                .then(res => {
+                    if (!res.ok) throw new Error(`${filename}: ${res.status}`)
+                    return res.text()
+                })
                 .then(text => {
                     const p = parsePeopleJson(text)
                     this.personMap[lang.key] = p
@@ -142,6 +150,11 @@ export default class EditInfo extends Vue {
                     if (this.editWebsites.length === 0) {
                         p.websites.forEach(a => this.editWebsites.push({ k: a[0], v: a[1] }))
                     }
+                })
+                .catch(err => {
+                    // Missing or malformed localized file – populate with desc placeholder only
+                    error(`Failed to load ${filename} for ${lang.key}: ${err.message}`)
+                    this.editInfoMap[lang.key].push({ k: descKeys[lang.key], v: '' })
                 })
         })
 
@@ -272,11 +285,13 @@ export default class EditInfo extends Vue {
     .lang-tab
         flex: 1
         padding: 6px 0
+        border: none
         border-radius: 8px
         background-color: $color-bg-4
         text-align: center
         cursor: pointer
         font-size: 0.9em
+        font-family: inherit
         transition: all 0.2s
         user-select: none
 
@@ -320,6 +335,11 @@ export default class EditInfo extends Vue {
 
     .button.submit
         margin-top: 30px
+        width: 100%
+        border: none
+        font-family: inherit
+        font-size: inherit
+        color: inherit
         background-color: $color-bg-6
         border-radius: 10px
         padding: 8px 0
