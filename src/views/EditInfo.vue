@@ -1,29 +1,39 @@
 <template>
-    <div id="container" class="fbox-vcenter">
-        <div class="spacer"/>
-        <div id="EditInfo" v-if="p">
+    <div>
+        <div id="EditInfo" v-if="loaded">
             <div class="head-text info">{{ t.nav_profile_card }}</div>
             <div id="id">@{{ userid }}</div>
-            <div class="fields info">
-                <div class="input-box" v-for="(info, i) in editInfo" :key="i">
-                    <input class="key" v-model="info.k" @change="change"/>
-                    <input class="value" v-model="info.v" @change="change"/>
+
+            <!-- Language tabs -->
+            <div class="lang-tabs">
+                <div v-for="lang in langs" :key="lang.key"
+                     class="lang-tab" :class="{ active: activeLang === lang.key }"
+                     @click="activeLang = lang.key">
+                    {{ lang.label }}
                 </div>
             </div>
+
+            <!-- Per-language info and desc -->
+            <template v-for="lang in langs" :key="lang.key">
+                <div v-show="activeLang === lang.key">
+                    <div class="fields info">
+                        <div class="input-box" v-for="(item, i) in editInfoMap[lang.key]" :key="i">
+                            <input class="key" v-model="item.k" @change="changeInfo(lang.key)"/>
+                            <input class="value" v-model="item.v" @change="changeInfo(lang.key)"/>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
             <div class="head-text websites">{{ t.nav_website }}</div>
             <div class="fields websites">
                 <div class="input-box" v-for="(web, i) in editWebsites" :key="i">
-                    <input class="key" v-model="web.k" @change="change"/>
-                    <input class="value" v-model="web.v" @change="change"/>
+                    <input class="key" v-model="web.k" @change="changeWebsites"/>
+                    <input class="value" v-model="web.v" @change="changeWebsites"/>
                 </div>
-            </div>
-            <div class="head-text desc">{{ t.edit.desc }}</div>
-            <div class="fields desc">
-                <input class="desc-input" v-model="editDesc" :placeholder="t.edit.desc_placeholder" @change="change"/>
             </div>
             <div class="button submit" @click="submitBtn">{{ t.nav_submit }}</div>
         </div>
-        <div class="spacer"/>
 
         <SubmitPrompt v-if="submitParams" @submit="submitRequest" @close="() => submitParams = null"/>
     </div>
@@ -31,7 +41,7 @@
 
 <script lang="ts">
 import SubmitPrompt, {CaptchaResponse} from "@/components/SubmitPrompt.vue";
-import {backendHost, getLang, info_i18n, peopleUrl, t} from "@/logic/config";
+import {backendHost, descKeys, getLang, langDefs, peopleUrl, t} from "@/logic/config";
 import {parsePeopleJson, Person} from "@/logic/data";
 import {fetchText} from "@/logic/helper";
 import {error, info} from "@/logic/utils";
@@ -54,116 +64,126 @@ export function removeEmpty(arr: KVPair[]): void {
     }
 }
 
+function ensureEmpty(list: KVPair[]): void {
+    if (list.filter(it => !it.k && !it.v).length === 0) {
+        list.push({ k: '', v: '' })
+    }
+}
+
 @Component({ components: { SubmitPrompt } })
 export default class EditInfo extends Vue {
     @Prop() userid!: string
-    p: Person = null as never as Person
 
-    initialJson!: string
+    loaded: boolean = false
+    langs = langDefs
+    activeLang: string = getLang()
 
-    editInfo: KVPair[] = []
+    // Per-language editable fields
+    editInfoMap: Record<string, KVPair[]> = { zh_hans: [], zh_hant: [], en: [] }
+
+    // Shared across languages
     editWebsites: KVPair[] = []
-    editDesc: string = ''
+
+    personMap: Record<string, Person> = {} as Record<string, Person>
+    initialJson!: string
 
     submitParams: { [id: string]: string } = null as never
 
     t = t
 
     json(): string {
-        return JSON.stringify({
-            info: Object.fromEntries(this.p.info),
-            websites: Object.fromEntries(this.p.websites),
-            desc: this.editDesc,
-        }, null, 2)
+        const data: Record<string, any> = {}
+
+        for (const lang of langDefs) {
+            const descKey = descKeys[lang.key]
+            const infoEntries: [string, string][] = []
+            let desc = ''
+
+            for (const it of this.editInfoMap[lang.key]) {
+                if (it.k === descKey) {
+                    desc = it.v
+                } else if (it.k || it.v) {
+                    infoEntries.push([it.k, it.v])
+                }
+            }
+
+            data[lang.key] = {
+                info: Object.fromEntries(infoEntries),
+                desc,
+            }
+        }
+
+        const webEntries = this.editWebsites
+            .filter(it => it.k || it.v)
+            .map(it => [it.k, it.v])
+        data.websites = Object.fromEntries(webEntries)
+
+        return JSON.stringify(data, null, 2)
     }
 
     created(): void {
-        // TODO: Handle errors
-        // Get data from server
-        fetch(urljoin(peopleUrl(this.userid), `info.json`))
-            .then(it => it.text())
-            .then(it => {
-                this.p = parsePeopleJson(it)
-                this.initialJson = this.json()
-                this.p.info.forEach((a) => {
-                    if (getLang() === 'zh_hans')
-                        this.editInfo.push({ k: a[0], v: a[1] })
-                    else {
-                        const targeti18n = info_i18n[getLang()]
-                        let s: string
-                        switch (a[0]) {
-                            case info_i18n['zh_hans'].alias:
-                                s = targeti18n.alias;
-                                break;
-                            case info_i18n['zh_hans'].age:
-                                s = targeti18n.age;
-                                break;
-                            case info_i18n['zh_hans'].born:
-                                s = targeti18n.born;
-                                break;
-                            case info_i18n['zh_hans'].died:
-                                s = targeti18n.died;
-                                break;
-                            case info_i18n['zh_hans'].location:
-                                s = targeti18n.location;
-                                break;
-                            default:
-                                s = a[0];
-                                break;
-                        }
-                        this.editInfo.push({ k: s, v: a[1] });
+        const promises = langDefs.map(lang => {
+            const filename = lang.suffix ? `info${lang.suffix}.json` : 'info.json'
+            return fetch(urljoin(peopleUrl(this.userid), filename))
+                .then(it => it.text())
+                .then(text => {
+                    const p = parsePeopleJson(text)
+                    this.personMap[lang.key] = p
+
+                    // Populate info for this language
+                    p.info.forEach(a => {
+                        this.editInfoMap[lang.key].push({ k: a[0], v: String(a[1]) })
+                    })
+
+                    // Append desc as a KV pair in info
+                    this.editInfoMap[lang.key].push({ k: descKeys[lang.key], v: p.desc || '' })
+
+                    // Websites are shared (same across languages), load once
+                    if (this.editWebsites.length === 0) {
+                        p.websites.forEach(a => this.editWebsites.push({ k: a[0], v: a[1] }))
                     }
                 })
-                this.p.websites.forEach((a) => this.editWebsites.push({ k: a[0], v: a[1] }))
-                this.editDesc = this.p.desc
-                this.change()
-            })
+        })
+
+        Promise.all(promises).then(() => {
+            this.loaded = true
+            this.initialJson = this.json()
+            for (const lang of langDefs) {
+                ensureEmpty(this.editInfoMap[lang.key])
+            }
+            ensureEmpty(this.editWebsites)
+        })
     }
 
-    change(): void {
-        for (const list of [this.editInfo, this.editWebsites]) {
-            // Remove redundant last entries
-            if (list.filter(it => !it.k && !it.v).length > 1)
-                removeEmpty(list)
+    changeInfo(langKey: string): void {
+        const list = this.editInfoMap[langKey]
+        if (list.filter(it => !it.k && !it.v).length > 1) removeEmpty(list)
+        ensureEmpty(list)
+    }
 
-            // Add empty
-            if (list.filter(it => !it.k && !it.v).length == 0)
-                list.push({ k: '', v: '' })
-        }
+    changeWebsites(): void {
+        if (this.editWebsites.filter(it => !it.k && !it.v).length > 1) removeEmpty(this.editWebsites)
+        ensureEmpty(this.editWebsites)
     }
 
     submitBtn(): void {
-        removeEmpty(this.editInfo)
+        // Clean up empty entries
+        for (const lang of langDefs) {
+            removeEmpty(this.editInfoMap[lang.key])
+        }
         removeEmpty(this.editWebsites)
-        this.p.info = this.editInfo.map(it => [it.k, it.v])
-        this.p.websites = this.editWebsites.map(it => [it.k, it.v])
-        this.p.info.forEach((e, i) => {
-            switch (e[0]) {
-                case info_i18n[getLang()].age:
-                    (this.p.info[i])[0] = info_i18n['zh_hans'].age;
-                    break;
-                case info_i18n[getLang()].alias:
-                    (this.p.info[i])[0] = info_i18n['zh_hans'].alias;
-                    break;
-                case info_i18n[getLang()].born:
-                    (this.p.info[i])[0] = info_i18n['zh_hans'].born;
-                    break;
-                case info_i18n[getLang()].died:
-                    (this.p.info[i])[0] = info_i18n['zh_hans'].died;
-                    break;
-                case info_i18n[getLang()].location:
-                    (this.p.info[i])[0] = info_i18n['zh_hans'].location;
-                    break;
-                default:
-                    break;
-            }
-        })
+
         const json = this.json()
         console.log(json)
-        this.change()
+
+        // Restore empty entries for UI
+        for (const lang of langDefs) {
+            ensureEmpty(this.editInfoMap[lang.key])
+        }
+        ensureEmpty(this.editWebsites)
 
         // Didn't change anything
-        if (json == this.initialJson) {
+        if (json === this.initialJson) {
             Swal.fire({
                 title: t.nav_unable_submit,
                 text: "(╯‵□′)╯︵┻━┻",
@@ -176,11 +196,13 @@ export default class EditInfo extends Vue {
         }
 
         // Show submit prompt
-        this.submitParams = { id: this.p.id, content: json }
+        const pid = this.personMap['zh_hans']?.id || this.userid
+        this.submitParams = { id: pid, content: json }
     }
 
     submitRequest(p: CaptchaResponse): void {
         const params = { ...this.submitParams, ...p }
+        const pid = this.personMap['zh_hans']?.id || this.userid
 
         Swal.fire({
             title: t.nav_creating_pull_request,
@@ -204,7 +226,7 @@ export default class EditInfo extends Vue {
                             theme: getSwalTheme()
                         }).then((result) => {
                             if ((result.isConfirmed) || (result.dismiss === Swal.DismissReason.timer))
-                                router.push(`/profile/${this.p.id}`);
+                                router.push(`/profile/${pid}`);
                         })
                     })
                     .catch(err => {
@@ -230,12 +252,6 @@ export default class EditInfo extends Vue {
 <style lang="sass" scoped>
 @use "@/css/colors" as *
 
-#container
-    height: 100%
-
-    .spacer
-        flex-grow: 1
-
 #EditInfo
     background: $color-bg-5
     margin: 0 min(5vw, 40px)
@@ -248,6 +264,30 @@ export default class EditInfo extends Vue {
         margin-bottom: 5px
         color: $color-text-light
 
+    .lang-tabs
+        display: flex
+        gap: 8px
+        margin: 10px 0
+
+    .lang-tab
+        flex: 1
+        padding: 6px 0
+        border-radius: 8px
+        background-color: $color-bg-4
+        text-align: center
+        cursor: pointer
+        font-size: 0.9em
+        transition: all 0.2s
+        user-select: none
+
+    .lang-tab:hover
+        filter: brightness(0.95)
+
+    .lang-tab.active
+        background-color: $color-bg-6
+        font-weight: bold
+        filter: drop-shadow(0 1px 3px rgba(166, 134, 89, 0.3))
+
     .head-text
         font-weight: bold
         font-size: 1.2em
@@ -255,24 +295,6 @@ export default class EditInfo extends Vue {
     .head-text.websites
         margin-top: 20px
         margin-bottom: 5px
-
-    .head-text.desc
-        margin-top: 20px
-        margin-bottom: 5px
-
-    .desc-input
-        width: 100%
-        border-radius: 5px
-        border: none
-        background-color: $color-bg-4
-        padding: 4px 8px
-        color: $color-text-main
-        text-align: center
-        outline: none
-        box-sizing: border-box
-
-    .desc-input:focus-visible
-        outline: solid $color-text-light
 
     .input-box
         width: 100%
@@ -350,13 +372,20 @@ export default class EditInfo extends Vue {
             input:focus-visible
                 outline: solid $color-text-dark-light
 
-        .desc-input
+        .lang-tab
+            background-color: $color-bg-dark-4
             color: $color-text-dark-main
-            background-color: $color-bg-dark-6
 
-        .desc-input:focus-visible
-            outline: solid $color-text-dark-light
+        .lang-tab.active
+            background-color: $color-bg-dark-6
 
         .button.submit
             background-color: $color-bg-dark-6
+</style>
+
+<style lang="sass">
+// Override #router padding when EditInfo is displayed
+// (#container doesn't exist in DOM due to Vue 3 attribute inheritance on <router-view>)
+#router:has(#EditInfo)
+    padding-bottom: 20px
 </style>

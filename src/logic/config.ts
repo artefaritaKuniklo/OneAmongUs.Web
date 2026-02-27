@@ -26,6 +26,18 @@ export const supportedLang: Record<Lang, string> = {
     'en': 'En'
 }
 
+export interface LangDef {
+    label: string,
+    key: Lang,
+    suffix: string
+}
+
+export const langDefs: LangDef[] = [
+    { label: '简体中文', key: 'zh_hans', suffix: '' },
+    { label: '繁體中文', key: 'zh_hant', suffix: '.zh_hant' },
+    { label: 'English', key: 'en', suffix: '.en' },
+]
+
 /**
  * Get language
  *
@@ -158,10 +170,6 @@ export const i18n = {
             strikethrough: "Strikethrough",
             code: "Code",
             spoiler: "Spoiler"
-        },
-        edit: {
-            desc: "Description",
-            desc_placeholder: "A short description (shown in list view)"
         }
     },
     "zh_hans": {
@@ -247,10 +255,6 @@ export const i18n = {
             strikethrough: "划掉",
             code: "代码",
             spoiler: "黑幕"
-        },
-        edit: {
-            desc: "简介",
-            desc_placeholder: "简短描述（显示在列表视图中）"
         }
     },
     "zh_hant": {
@@ -336,38 +340,14 @@ export const i18n = {
             strikethrough: "刪除綫",
             code: "等寬字體",
             spoiler: "劇透内容"
-        },
-        edit: {
-            desc: "簡介",
-            desc_placeholder: "簡短描述（顯示在列表視圖中）"
         }
     }
 }
 
 export const t = i18n[getLang()]
 
-export const info_i18n = {
-    "en": {
-        "alias": "Alias",
-        "location": "Location",
-        "born": "Born",
-        "died": "Departed",
-        "age": "Age",
-    },
-    "zh_hans": {
-        "alias": "昵称",
-        "location": "地区",
-        "born": "出生",
-        "died": "逝世",
-        "age": "年龄",
-    },
-    "zh_hant": {
-        "alias": "暱稱",
-        "location": "地區",
-        "born": "誕生",
-        "died": "去世",
-        "age": "年齡",
-    }
+export const descKeys: Record<Lang, string> = {
+    zh_hans: '简介',
+    zh_hant: '簡介',
+    en: 'Description',
 }
-
-export const f = info_i18n[getLang()];
