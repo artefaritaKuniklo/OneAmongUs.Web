@@ -26,6 +26,8 @@ export interface Person {
     info: [string, string][]
     websites: [string, string][]
     comments: Comment[]
+
+    desc?: string       // Short description from page.md frontmatter
 }
 
 export interface BannerData {

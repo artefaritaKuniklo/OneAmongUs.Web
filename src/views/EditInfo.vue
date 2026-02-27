@@ -17,6 +17,10 @@
                     <input class="value" v-model="web.v" @change="change"/>
                 </div>
             </div>
+            <div class="head-text desc">{{ t.edit.desc }}</div>
+            <div class="fields desc">
+                <input class="desc-input" v-model="editDesc" :placeholder="t.edit.desc_placeholder" @change="change"/>
+            </div>
             <div class="button submit" @click="submitBtn">{{ t.nav_submit }}</div>
         </div>
         <div class="spacer"/>
@@ -59,6 +63,7 @@ export default class EditInfo extends Vue {
 
     editInfo: KVPair[] = []
     editWebsites: KVPair[] = []
+    editDesc: string = ''
 
     submitParams: { [id: string]: string } = null as never
 
@@ -67,7 +72,8 @@ export default class EditInfo extends Vue {
     json(): string {
         return JSON.stringify({
             info: Object.fromEntries(this.p.info),
-            websites: Object.fromEntries(this.p.websites)
+            websites: Object.fromEntries(this.p.websites),
+            desc: this.editDesc,
         }, null, 2)
     }
 
@@ -109,6 +115,7 @@ export default class EditInfo extends Vue {
                     }
                 })
                 this.p.websites.forEach((a) => this.editWebsites.push({ k: a[0], v: a[1] }))
+                this.editDesc = this.p.desc
                 this.change()
             })
     }
@@ -249,6 +256,24 @@ export default class EditInfo extends Vue {
         margin-top: 20px
         margin-bottom: 5px
 
+    .head-text.desc
+        margin-top: 20px
+        margin-bottom: 5px
+
+    .desc-input
+        width: 100%
+        border-radius: 5px
+        border: none
+        background-color: $color-bg-4
+        padding: 4px 8px
+        color: $color-text-main
+        text-align: center
+        outline: none
+        box-sizing: border-box
+
+    .desc-input:focus-visible
+        outline: solid $color-text-light
+
     .input-box
         width: 100%
         display: flex
@@ -324,6 +349,13 @@ export default class EditInfo extends Vue {
 
             input:focus-visible
                 outline: solid $color-text-dark-light
+
+        .desc-input
+            color: $color-text-dark-main
+            background-color: $color-bg-dark-6
+
+        .desc-input:focus-visible
+            outline: solid $color-text-dark-light
 
         .button.submit
             background-color: $color-bg-dark-6

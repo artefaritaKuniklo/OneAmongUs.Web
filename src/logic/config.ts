@@ -158,6 +158,10 @@ export const i18n = {
             strikethrough: "Strikethrough",
             code: "Code",
             spoiler: "Spoiler"
+        },
+        edit: {
+            desc: "Description",
+            desc_placeholder: "A short description (shown in list view)"
         }
     },
     "zh_hans": {
@@ -243,6 +247,10 @@ export const i18n = {
             strikethrough: "划掉",
             code: "代码",
             spoiler: "黑幕"
+        },
+        edit: {
+            desc: "简介",
+            desc_placeholder: "简短描述（显示在列表视图中）"
         }
     },
     "zh_hant": {
@@ -328,6 +336,10 @@ export const i18n = {
             strikethrough: "刪除綫",
             code: "等寬字體",
             spoiler: "劇透内容"
+        },
+        edit: {
+            desc: "簡介",
+            desc_placeholder: "簡短描述（顯示在列表視圖中）"
         }
     }
 }
