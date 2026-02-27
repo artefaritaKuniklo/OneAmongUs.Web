@@ -77,7 +77,7 @@ import {Icon} from '@iconify/vue';
 import Swal from 'sweetalert2';
 import {getSwalTheme} from "@/logic/theme";
 import urljoin from 'url-join';
-import {Component, Prop, Vue} from 'vue-facing-decorator';
+import {Component, Prop, Vue, Watch} from 'vue-facing-decorator';
 
 @Component({ components: { Icon } })
 export default class ProfileCard extends Vue {
@@ -206,6 +206,11 @@ export default class ProfileCard extends Vue {
             else if (result.dismiss === Swal.DismissReason.cancel)
                 open(`https://github.com/one-among-us/data/tree/main/people/${this.userid}/page.md`)
         })
+    }
+
+    @Watch('userid')
+    onUserChange(): void {
+        this.showSolarBorn = false
     }
 
     isBornField(key: string): boolean {
