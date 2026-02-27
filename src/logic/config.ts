@@ -26,6 +26,18 @@ export const supportedLang: Record<Lang, string> = {
     'en': 'En'
 }
 
+export interface LangDef {
+    label: string,
+    key: Lang,
+    suffix: string
+}
+
+export const langDefs: LangDef[] = [
+    { label: '简体中文', key: 'zh_hans', suffix: '' },
+    { label: '繁體中文', key: 'zh_hant', suffix: '.zh_hant' },
+    { label: 'English', key: 'en', suffix: '.en' },
+]
+
 /**
  * Get language
  *
@@ -84,6 +96,10 @@ export const i18n = {
         "nav_introduction": "Introduction",
         "nav_submit": "Submit",
         "nav_unable_submit": "Unable to submit: nothing changed",
+        "nav_duplicate_key": "Duplicate key found",
+        "nav_duplicate_key_text": "Duplicate key \"{key}\" in {lang}. Please fix before submitting.",
+        "nav_empty_key": "Missing field name",
+        "nav_empty_key_text": "A field in {lang} has a value but no name. Please add a name or clear the value.",
         "nav_ok_0": "ok",
         "nav_ok_1": "ok",
         "nav_creating_pull_request": "Working...",
@@ -169,6 +185,10 @@ export const i18n = {
         "nav_introduction": "简介条目",
         "nav_submit": "提交",
         "nav_unable_submit": "什么都没改怎么提交啦",
+        "nav_duplicate_key": "字段名重复",
+        "nav_duplicate_key_text": "{lang}中存在重复的字段名 \"{key}\"，请修正后再提交",
+        "nav_empty_key": "缺少字段名",
+        "nav_empty_key_text": "{lang}中有字段填了内容但没有填字段名，请补充或清空",
         "nav_ok_0": "好好好",
         "nav_ok_1": "好诶",
         "nav_creating_pull_request": "正在创建更改请求...",
@@ -254,6 +274,10 @@ export const i18n = {
         "nav_introduction": "簡介條目",
         "nav_submit": "提交",
         "nav_unable_submit": "什麼都沒有改怎麼提交啦",
+        "nav_duplicate_key": "欄位名稱重複",
+        "nav_duplicate_key_text": "{lang}中存在重複的欄位名 \"{key}\"，請修正後再提交",
+        "nav_empty_key": "缺少欄位名",
+        "nav_empty_key_text": "{lang}中有欄位填了內容但沒有填欄位名，請補充或清空",
         "nav_ok_0": "好好好",
         "nav_ok_1": "好誒",
         "nav_creating_pull_request": "創建更改請求中...",
@@ -334,28 +358,8 @@ export const i18n = {
 
 export const t = i18n[getLang()]
 
-export const info_i18n = {
-    "en": {
-        "alias": "Alias",
-        "location": "Location",
-        "born": "Born",
-        "died": "Departed",
-        "age": "Age",
-    },
-    "zh_hans": {
-        "alias": "昵称",
-        "location": "地区",
-        "born": "出生",
-        "died": "逝世",
-        "age": "年龄",
-    },
-    "zh_hant": {
-        "alias": "暱稱",
-        "location": "地區",
-        "born": "誕生",
-        "died": "去世",
-        "age": "年齡",
-    }
+export const descKeys: Record<Lang, string> = {
+    zh_hans: '简介',
+    zh_hant: '簡介',
+    en: 'Description',
 }
-
-export const f = info_i18n[getLang()];
