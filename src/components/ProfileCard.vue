@@ -72,7 +72,8 @@
 import {backendHost, dataHost, replaceUrlVars, t} from "@/logic/config";
 import {Person} from "@/logic/data";
 import {handleBirthdayToast, handleFlowerToast} from '@/logic/easterEgg';
-import {abbreviateNumber, getResponseSync, getTodayDate, isTodayBirthday} from "@/logic/helper";
+import {abbreviateNumber, getResponseSync, getTodayDate} from "@/logic/helper";
+import {BirthdayEntry, getTodayContext, isTodayBirthday} from "@/logic/birthday";
 import {info} from '@/logic/utils';
 import router from "@/router";
 import {Icon} from '@iconify/vue';
@@ -106,10 +107,10 @@ export default class ProfileCard extends Vue {
         fetch(urljoin(dataHost, 'birthday-list.json'))
             .then(it => it.json())
             .then(it => {
-                it = (it as [string, string, string | null][])
-                for (const v of it) {
+                const today = getTodayContext()
+                for (const v of (it as BirthdayEntry[])) {
                     if (v[0] == this.userid) {
-                        if (isTodayBirthday(v)) {
+                        if (isTodayBirthday(v, today)) {
                             this.isBirthday = true
                         }
                     }

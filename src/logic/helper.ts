@@ -2,7 +2,6 @@ import {getLang} from "@/logic/config";
 import {Icon} from "@/logic/icon";
 import {info} from "@/logic/utils";
 import moment from 'moment'
-import {Solar} from 'lunar-typescript'
 import Swal from 'sweetalert2';
 import {getSwalTheme} from "@/logic/theme";
 
@@ -257,28 +256,4 @@ export function isTdorPeriod(): boolean {
     const startUtcMs = Date.UTC(year, 10, 19, 10, 0, 0); // Nov 19 18:00 CST
     const endUtcMs   = Date.UTC(year, 10, 21, 12, 0, 0); // Nov 21 20:00 CST
     return nowMs >= startUtcMs && nowMs <= endUtcMs;
-}
-
-/**
- * Check if today is someone's birthday from a birthday-list.json entry.
- * Entry format: [id, bornDate, lunarMd | null]
- * For lunar birthdays (lunarMd is a string like "01-27"), compare today's lunar month-day.
- * Leap months also count as a match (e.g. if lunar birthday is month 2, both 二月 and 闰二月 match).
- */
-export function isTodayBirthday(entry: [string, string, string | null]): boolean {
-    const [, bornDate, lunarMd] = entry
-    const now = new Date()
-
-    if (lunarMd) {
-        // Lunar birthday: compare today's lunar month-day
-        const solar = Solar.fromDate(now)
-        const lunar = solar.getLunar()
-        const [lm, ld] = lunarMd.split('-').map(Number)
-        // Match month (ignore leap vs non-leap) and day
-        return Math.abs(lunar.getMonth()) === lm && lunar.getDay() === ld
-    } else {
-        // Solar birthday: compare month and day
-        const d = new Date(bornDate)
-        return now.getDate() === d.getDate() && now.getMonth() === d.getMonth()
-    }
 }

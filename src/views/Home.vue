@@ -119,11 +119,11 @@ import {
     gaussian_shuffle,
     getResponseSync,
     handleIconFromString,
-    isTodayBirthday,
     randint,
     scheduledLoopTask,
     shuffle,
 } from "@/logic/helper";
+import {BirthdayEntry, getTodayContext, isTodayBirthday} from "@/logic/birthday";
 import {info} from '@/logic/utils';
 import {isUwU, UwU} from "@/logic/uwu";
 import {viaBalloon} from "@/logic/viaFetch";
@@ -307,8 +307,9 @@ export default class Home extends Vue {
         fetch(urljoin(dataHost, 'birthday-list.json'))
             .then(it => it.json())
             .then(it => {
-                for (const v of (it as [string, string, string | null][])) {
-                    if (isTodayBirthday(v)) {
+                const today = getTodayContext()
+                for (const v of (it as BirthdayEntry[])) {
+                    if (isTodayBirthday(v, today)) {
                         const p = JSON.parse(getResponseSync(urljoin(peopleUrl(v[0]), getLang() == 'zh_hans' ? 'info.json' : `info.${getLang()}.json`))) as Person;
                         this.birthdayList.push([v[0], p.name])
                     }

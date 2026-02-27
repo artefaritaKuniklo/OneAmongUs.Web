@@ -19,7 +19,8 @@ import ProfileCard from '@/components/ProfileCard.vue';
 import {balloons, dataHost, Lang, limit, peopleUrl, replaceUrlVars, setLang, t} from "@/logic/config";
 import {parsePeopleJson, Person} from "@/logic/data";
 import {handleEasterEgg} from '@/logic/easterEgg'
-import {fetchWithLang, isTodayBirthday, randint, scheduledTask, trim} from "@/logic/helper";
+import {fetchWithLang, randint, scheduledTask, trim} from "@/logic/helper";
+import {BirthdayEntry, getTodayContext, isTodayBirthday} from "@/logic/birthday";
 import {sunriseTime, sunsetTime} from "@/logic/sunset";
 import ProfileComments from "@/views/ProfileComments.vue";
 import Swal from 'sweetalert2';
@@ -68,10 +69,10 @@ export default class Profile extends Vue {
         fetch(urljoin(dataHost, 'birthday-list.json'))
             .then(it => it.json())
             .then(it => {
-                it = (it as [string, string, string | null][])
-                for (const v of it) {
+                const today = getTodayContext()
+                for (const v of (it as BirthdayEntry[])) {
                     if (v[0] == this.userid) {
-                        if (isTodayBirthday(v)) {
+                        if (isTodayBirthday(v, today)) {
                             for (let i = 0; i < balloons.count; ++i) {
                                 this.isBirthday.push(randint(0, 2147483648))
                             }
