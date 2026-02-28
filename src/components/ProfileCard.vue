@@ -36,7 +36,17 @@
             <ul id="fields" class="f-grow1">
                 <li v-for="info of p.info" :key="info[0]">
                     <span class="key">{{ info[0] }}：</span>
-                    <span class="value">{{ info[1] }}</span>
+                    <button v-if="isBornField(info[0]) && p.solarBorn"
+                            type="button"
+                            class="value born-toggle"
+                            @click="toggleBornDisplay"
+                            :title="showSolarBorn ? '' : p.solarBorn"
+                            :aria-label="showSolarBorn ? 'Show lunar date' : 'Show solar date'">
+                        <transition name="born-fade" mode="out-in">
+                            <span :key="showSolarBorn ? 'solar' : 'lunar'">{{ showSolarBorn ? p.solarBorn : info[1] }}</span>
+                        </transition>
+                    </button>
+                    <span v-else class="value">{{ info[1] }}</span>
                 </li>
             </ul>
             <div id="websites" v-if="p.websites?.length">
@@ -63,13 +73,14 @@ import {backendHost, dataHost, replaceUrlVars, t} from "@/logic/config";
 import {Person} from "@/logic/data";
 import {handleBirthdayToast, handleFlowerToast} from '@/logic/easterEgg';
 import {abbreviateNumber, getResponseSync, getTodayDate} from "@/logic/helper";
+import {BirthdayEntry, getTodayContext, isTodayBirthday} from "@/logic/birthday";
 import {info} from '@/logic/utils';
 import router from "@/router";
 import {Icon} from '@iconify/vue';
 import Swal from 'sweetalert2';
 import {getSwalTheme} from "@/logic/theme";
 import urljoin from 'url-join';
-import {Component, Prop, Vue} from 'vue-facing-decorator';
+import {Component, Prop, Vue, Watch} from 'vue-facing-decorator';
 
 @Component({ components: { Icon } })
 export default class ProfileCard extends Vue {
@@ -84,6 +95,7 @@ export default class ProfileCard extends Vue {
     target = '.'
     sourceTarget = '.'
     inWarning = false
+    showSolarBorn = false
 
     loading = new Set<string>()
 
@@ -95,12 +107,10 @@ export default class ProfileCard extends Vue {
         fetch(urljoin(dataHost, 'birthday-list.json'))
             .then(it => it.json())
             .then(it => {
-                it = (it as [string, string][])
-                for (const v of it) {
+                const today = getTodayContext()
+                for (const v of (it as BirthdayEntry[])) {
                     if (v[0] == this.userid) {
-                        const d = new Date(v[1]);
-                        const now = new Date();
-                        if ((now.getDate() == d.getDate()) && (now.getMonth() == d.getMonth())) {
+                        if (isTodayBirthday(v, today)) {
                             this.isBirthday = true
                         }
                     }
@@ -199,6 +209,19 @@ export default class ProfileCard extends Vue {
             else if (result.dismiss === Swal.DismissReason.cancel)
                 open(`https://github.com/one-among-us/data/tree/main/people/${this.userid}/page.md`)
         })
+    }
+
+    @Watch('userid')
+    onUserChange(): void {
+        this.showSolarBorn = false
+    }
+
+    isBornField(key: string): boolean {
+        return !!this.p.bornKey && key === this.p.bornKey
+    }
+
+    toggleBornDisplay(): void {
+        this.showSolarBorn = !this.showSolarBorn
     }
 
     get profileUrl(): string {
@@ -313,6 +336,38 @@ div:has(.view-limit-alert)
             .key
                 font-weight: bold
 
+            .born-toggle
+                cursor: pointer
+                background: none
+                border: none
+                padding: 0
+                margin: 0
+                font: inherit
+                color: inherit
+                text-align: left
+                display: inline
+
+                &:hover
+                    opacity: 0.7
+
+                &:focus-visible
+                    outline: 2px solid currentColor
+                    outline-offset: 2px
+                    border-radius: 2px
+
+// Born date toggle animation
+.born-fade-enter-active, .born-fade-leave-active
+    transition: opacity 0.2s ease, transform 0.2s ease
+
+.born-fade-enter-from
+    opacity: 0
+    transform: translateY(-4px)
+
+.born-fade-leave-to
+    opacity: 0
+    transform: translateY(4px)
+
+#right
     #websites
         display: flex
         gap: 10px

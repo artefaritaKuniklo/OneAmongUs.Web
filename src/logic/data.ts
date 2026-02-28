@@ -27,6 +27,8 @@ export interface Person {
     websites: [string, string][]
     comments: Comment[]
 
+    solarBorn?: string  // For lunar birthday people: the original Gregorian date
+    bornKey?: string    // Localized key name for the born info entry (from data build)
     desc?: string       // Short description from page.md frontmatter
 }
 
